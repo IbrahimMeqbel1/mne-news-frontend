@@ -1,8 +1,5 @@
-import type { LaravelPaginated, NewsItem, SingleResourceResponse } from '@/types/news';
+import type { LaravelPaginated, NewsItem } from '@/types/news';
 
-// عنوان السيرفر الخلفي (Laravel)
-// عرّفه في ملف .env.local باسم NEXT_PUBLIC_API_URL
-// مثال: NEXT_PUBLIC_API_URL=http://185.137.122.247:3002
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://185.137.122.247:3002';
 
 class ApiError extends Error {
@@ -15,10 +12,6 @@ class ApiError extends Error {
   }
 }
 
-/**
- * دالة عامة لجلب البيانات من الـ API مع إعادة التحقق (ISR)
- * revalidateSeconds: كل كم ثانية يعيد Next.js طلب البيانات من جديد
- */
 async function apiFetch<T>(path: string, revalidateSeconds = 60): Promise<T> {
   const res = await fetch(`${API_BASE_URL}/api${path}`, {
     headers: { Accept: 'application/json' },
@@ -32,15 +25,15 @@ async function apiFetch<T>(path: string, revalidateSeconds = 60): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// جلب قائمة الأخبار (مع صفحات)
+// جلب قائمة الأخبار
 export function getNewsList(page = 1, lang: 'ar' | 'en' = 'ar') {
   return apiFetch<LaravelPaginated<NewsItem>>(`/news?page=${page}&lang=${lang}`);
 }
 
-// جلب خبر واحد عبر الـ slug
+// جلب خبر واحد
 export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
   try {
-    const res = await apiFetch<SingleResourceResponse<NewsItem>>(`/news/${slug}`);
+    const res = await apiFetch<{ data: NewsItem }>(`/news/${slug}`);
     return res.data;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {

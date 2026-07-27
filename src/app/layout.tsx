@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ar' dir='rtl'>
-      <body className={`${pingAR.className} antialiased`}>{children}</body>
+      <body className={`${pingAR.variable} font-sans antialiased`}>{children}</body>
     </html>
   );
 }
