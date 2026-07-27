@@ -28,34 +28,57 @@ export default async function NewsDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const hasCoverImage = Boolean(news.cover_image && !news.cover_image.startsWith('data:'));
+
   return (
-    <main className='mx-auto max-w-3xl px-6 py-16'>
-      <Link href='/news' className='mb-8 inline-block text-sm text-zinc-500 hover:text-black'>
-        ← العودة إلى الأخبار
-      </Link>
+    <div className='min-h-screen bg-[#f7f4ed] text-[#17251f]'>
+      <header className='bg-[#17251f] text-white'>
+        <div className='mx-auto flex max-w-7xl items-center justify-between px-6 py-5'>
+          <Link href='/' className='font-bold transition hover:text-[#d7b950]'>وزارة الاقتصاد الوطني</Link>
+          <Link href='/news' className='text-sm text-white/70 transition hover:text-white'>العودة إلى الأخبار ←</Link>
+        </div>
+      </header>
 
-      {news.publish_date && (
-        <span className='mb-3 block text-sm text-zinc-400'>{formatArabicDate(news.publish_date)}</span>
-      )}
+      <main className='mx-auto max-w-5xl px-6 py-14 sm:py-20'>
+        <nav className='mb-8 text-sm font-bold text-[#9a7921]'>
+          <Link href='/' className='hover:underline'>الرئيسية</Link>
+          <span className='mx-2 text-[#17251f]/25'>/</span>
+          <Link href='/news' className='hover:underline'>الأخبار</Link>
+        </nav>
 
-      <h1 className='mb-6 text-3xl font-bold leading-tight text-black'>{news.title}</h1>
+        <article>
+          <header className='max-w-4xl'>
+            <p className='text-sm font-bold text-[#9a7921]'>{news.publish_date ? formatArabicDate(news.publish_date) : 'أخبار الوزارة'}</p>
+            <h1 className='mt-4 text-4xl font-black leading-[1.35] sm:text-6xl'>{news.title}</h1>
+            {news.description && <p className='mt-7 text-xl leading-9 text-[#17251f]/60'>{news.description}</p>}
+          </header>
 
-      {news.cover_image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={news.cover_image}
-          alt={news.title}
-          className='mb-8 w-full rounded-xl object-cover'
-        />
-      )}
+          <div className='relative mt-12 min-h-72 overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,#d9d4c8,#ece8de)] sm:min-h-[460px]'>
+            {hasCoverImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={news.cover_image!} alt='' className='absolute inset-0 h-full w-full object-cover' />
+            ) : (
+              <div className='absolute inset-0 grid place-items-center'>
+                <div className='text-center'>
+                  <div className='mx-auto mb-5 h-16 w-px bg-[#c9a83e]' />
+                  <p className='text-sm font-black tracking-[0.18em] text-[#17251f]/40'>وزارة الاقتصاد الوطني</p>
+                </div>
+              </div>
+            )}
+          </div>
 
-      {news.description && <p className='mb-6 text-lg text-zinc-600'>{news.description}</p>}
+          {news.content && (
+            <div
+              className='prose prose-zinc mx-auto mt-12 max-w-3xl prose-headings:font-bold prose-img:rounded-2xl'
+              dangerouslySetInnerHTML={{ __html: news.content }}
+            />
+          )}
 
-      {/* المحتوى قادم كـ HTML من محرر Twill النصي، لذلك نستخدم dangerouslySetInnerHTML */}
-      <div
-        className='prose prose-zinc max-w-none prose-headings:font-bold prose-img:rounded-xl'
-        dangerouslySetInnerHTML={{ __html: news.content }}
-      />
-    </main>
+          <footer className='mt-14 border-t border-[#17251f]/15 pt-8'>
+            <Link href='/news' className='inline-flex rounded-full bg-[#17251f] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#2b4438]'>العودة إلى جميع الأخبار</Link>
+          </footer>
+        </article>
+      </main>
+    </div>
   );
 }

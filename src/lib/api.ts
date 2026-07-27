@@ -1,9 +1,8 @@
-import type { LaravelPaginated, NewsItem, SingleResourceResponse } from '@/types/news';
+import type { LaravelPaginated, NewsItem } from '@/types/news';
 
-// عنوان السيرفر الخلفي (Laravel)
-// عرّفه في ملف .env.local باسم NEXT_PUBLIC_API_URL
-// مثال: NEXT_PUBLIC_API_URL=http://185.137.122.247:3002
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://185.137.122.247:3002';
+const DEFAULT_API_ORIGIN = 'http://185.137.122.247:8000';
+const API_ORIGIN = (process.env.API_URL ?? DEFAULT_API_ORIGIN).replace(/\/$/, '');
+const API_BASE_URL = API_ORIGIN.endsWith('/api') ? API_ORIGIN : `${API_ORIGIN}/api`;
 
 class ApiError extends Error {
   constructor(
@@ -20,16 +19,22 @@ class ApiError extends Error {
  * revalidateSeconds: كل كم ثانية يعيد Next.js طلب البيانات من جديد
  */
 async function apiFetch<T>(path: string, revalidateSeconds = 60): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}/api${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: { Accept: 'application/json' },
     next: { revalidate: revalidateSeconds }
   });
 
-  if (!res.ok) {
-    throw new ApiError(res.status, `فشل الطلب: ${path} (${res.status})`);
+  if (!response.ok) {
+    throw new ApiError(response.status, `فشل الطلب: ${path} (${response.status})`);
   }
 
-  return res.json() as Promise<T>;
+  const contentType = response.headers.get('content-type');
+
+  if (!contentType?.includes('application/json')) {
+    throw new ApiError(response.status, `استجابة غير صالحة من خادم الأخبار: ${path}`);
+  }
+
+  return response.json() as Promise<T>;
 }
 
 // جلب قائمة الأخبار (مع صفحات)
@@ -39,15 +44,19 @@ export function getNewsList(page = 1, lang: 'ar' | 'en' = 'ar') {
 
 // جلب خبر واحد عبر الـ slug
 export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
-  try {
-    const res = await apiFetch<SingleResourceResponse<NewsItem>>(`/news/${slug}`);
-    return res.data;
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 404) {
-      return null;
-    }
-    throw err;
+  const firstPage = await getNewsList(1);
+  const firstMatch = firstPage.data.find((item) => item.slug === slug);
+
+  if (firstMatch) return firstMatch;
+
+  for (let page = 2; page <= firstPage.meta.last_page; page += 1) {
+    const result = await getNewsList(page);
+    const match = result.data.find((item) => item.slug === slug);
+
+    if (match) return match;
   }
+
+  return null;
 }
 
 export { ApiError };
