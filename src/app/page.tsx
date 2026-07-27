@@ -2,11 +2,10 @@ import { getNewsList } from '@/lib/api';
 import Link from 'next/link';
 
 import { Search, Calendar, ChevronLeft, ChevronRight, Globe, Phone, MapPin } from 'lucide-react';
-import { mockNews } from '@/lib/mockData';
 
 export default async function Home() {
   let result = await getNewsList(1).catch(() => null);
-  const newsItems = result?.data?.slice(0, 3) || mockNews.slice(0, 3);
+  const newsItems = result?.data?.slice(0, 3) || [];
 
   return (
     <div className="min-h-screen bg-[#FDF8F0]" dir="rtl">

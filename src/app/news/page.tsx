@@ -3,7 +3,6 @@ import { getNewsList } from '@/lib/api';
 import { formatArabicDate } from '@/lib/format';
 import NewsSlider from '@/components/NewsSlider';
 import { Search, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { mockNews } from '@/lib/mockData';
 
 export const metadata = {
   title: 'الأخبار | وزارة الإقتصاد الوطني',
@@ -20,9 +19,8 @@ export default async function NewsPage({ searchParams }: PageProps) {
 
   let result = await getNewsList(currentPage).catch(() => null);
   
-  // استخدام بيانات تجريبية للعرض في حال فشل الـ API
-  const newsItems = result?.data || mockNews;
-  const meta = result?.meta || { last_page: 1, current_page: 1 };
+  const newsItems = result?.data || [];
+  const meta = result?.meta || null;
   const sliderItems = newsItems.slice(0, 5); // أول 5 أخبار للسلايدر
 
   return (
