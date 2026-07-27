@@ -13,89 +13,90 @@ interface PageProps {
 
 export default async function NewsPage({ searchParams }: PageProps) {
   const { page } = await searchParams;
-  const currentPage = Number(page) > 0 ? Number(page) : 1;
-
-  const result = await getNewsList(currentPage).catch(() => null);
-
-  if (!result) {
-    return (
-      <main className='mx-auto max-w-5xl px-6 py-24 text-center'>
-        <p className='text-lg text-zinc-500'>تعذّر تحميل الأخبار حالياً، حاول مرة أخرى لاحقاً.</p>
-      </main>
-    );
-  }
-
-  const { data: newsItems, meta } = result;
+  const requestedPage = Number.parseInt(page ?? '1', 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const result = await getNewsList(currentPage).catch((error: unknown) => {
+    console.error('تعذر جلب الأخبار:', error);
+    return null;
+  });
 
   return (
-    <main className='mx-auto max-w-5xl px-6 py-16'>
-      <h1 className='mb-10 text-3xl font-bold text-black'>الأخبار</h1>
+    <div className='min-h-screen bg-[#f7f4ed] text-[#17251f]'>
+      <header className='border-b border-[#17251f]/10 bg-[#17251f] text-white'>
+        <div className='mx-auto flex max-w-7xl items-center justify-between px-6 py-5'>
+          <Link href='/' className='font-bold transition hover:text-[#d7b950]'>وزارة الاقتصاد الوطني</Link>
+          <Link href='/' className='text-sm text-white/70 transition hover:text-white'>العودة إلى الرئيسية ←</Link>
+        </div>
+      </header>
 
-      {newsItems.length === 0 ? (
-        <p className='text-zinc-500'>لا توجد أخبار منشورة حالياً.</p>
-      ) : (
-        <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-          {newsItems.map((item) => (
-            <Link
-              key={item.id}
-              href={`/news/${item.slug}`}
-              className='group flex flex-col overflow-hidden rounded-xl border border-zinc-200 transition hover:shadow-lg'
-            >
-              <div className='relative aspect-video w-full overflow-hidden bg-zinc-100'>
-                {item.cover_image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.cover_image}
-                    alt={item.title}
-                    className='h-full w-full object-cover transition duration-300 group-hover:scale-105'
-                  />
-                ) : (
-                  <div className='flex h-full items-center justify-center text-sm text-zinc-400'>
-                    بدون صورة
+      <main className='mx-auto max-w-7xl px-6 py-16'>
+        <div className='mb-12 border-b border-[#17251f]/15 pb-10'>
+          <p className='mb-3 text-sm font-bold text-[#9a7921]'>المركز الإعلامي / الأخبار</p>
+          <div className='flex flex-col justify-between gap-5 md:flex-row md:items-end'>
+            <h1 className='text-5xl font-black sm:text-6xl'>الأخبار</h1>
+            <p className='max-w-xl leading-8 text-[#17251f]/60'>تابع آخر أنشطة الوزارة والقرارات والمبادرات المتعلقة بالاقتصاد الوطني وحماية المستهلك.</p>
+          </div>
+        </div>
+
+        {!result ? (
+          <section className='rounded-[2rem] border border-[#b95043]/25 bg-[#fff8f5] p-8 sm:p-12'>
+            <p className='text-sm font-bold text-[#a84035]'>تعذر الاتصال بخدمة الأخبار</p>
+            <h2 className='mt-3 text-2xl font-black'>الأخبار غير متاحة مؤقتًا</h2>
+            <p className='mt-3 max-w-2xl leading-8 text-[#17251f]/60'>حدثت مشكلة أثناء جلب البيانات من الخادم. حاول تحديث الصفحة بعد قليل.</p>
+            <Link href={`/news?page=${currentPage}`} className='mt-7 inline-block rounded-full bg-[#17251f] px-6 py-3 text-sm font-bold text-white'>إعادة المحاولة</Link>
+          </section>
+        ) : result.data.length === 0 ? (
+          <section className='rounded-[2rem] border border-dashed border-[#17251f]/25 bg-white/50 p-12 text-center'>
+            <h2 className='text-2xl font-black'>لا توجد أخبار منشورة حاليًا</h2>
+            <p className='mt-3 text-[#17251f]/60'>تظهر الأخبار الجديدة هنا فور نشرها.</p>
+          </section>
+        ) : (
+          <>
+            <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+              {result.data.map((item, index) => (
+                <Link
+                  key={item.id}
+                  href={`/news/${item.slug}`}
+                  className={`group flex min-h-96 flex-col overflow-hidden rounded-[2rem] border border-[#17251f]/10 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl ${index === 0 ? 'md:col-span-2 lg:col-span-2' : ''}`}
+                >
+                  <div className={`relative overflow-hidden bg-[#d9d4c8] ${index === 0 ? 'min-h-72' : 'min-h-52'}`}>
+                    {item.cover_image && !item.cover_image.startsWith('data:') ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.cover_image} alt='' className='absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105' />
+                    ) : (
+                      <div className='absolute inset-0 grid place-items-center bg-[linear-gradient(135deg,#d9d4c8,#ece8de)] text-sm font-bold text-[#17251f]/35'>وزارة الاقتصاد الوطني</div>
+                    )}
                   </div>
-                )}
-              </div>
+                  <div className='flex flex-1 flex-col p-7'>
+                    <p className='text-xs font-bold text-[#9a7921]'>{item.publish_date ? formatArabicDate(item.publish_date) : 'أخبار الوزارة'}</p>
+                    <h2 className={`mt-3 font-black leading-snug ${index === 0 ? 'text-3xl' : 'text-2xl'}`}>{item.title}</h2>
+                    {item.description && <p className='mt-4 line-clamp-3 leading-7 text-[#17251f]/60'>{item.description}</p>}
+                    <span className='mt-auto pt-7 text-sm font-bold'>اقرأ الخبر ←</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
 
-              <div className='flex flex-1 flex-col gap-2 p-4'>
-                {item.publish_date && (
-                  <span className='text-xs text-zinc-400'>{formatArabicDate(item.publish_date)}</span>
-                )}
-                <h2 className='line-clamp-2 text-lg font-bold text-black group-hover:text-yellow-600'>
-                  {item.title}
-                </h2>
-                {item.description && (
-                  <p className='line-clamp-2 text-sm text-zinc-500'>{item.description}</p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {meta && meta.last_page > 1 && (
-        <div className='mt-12 flex items-center justify-center gap-4'>
-          <PageLink page={currentPage - 1} disabled={currentPage <= 1} label='السابق' />
-          <span className='text-sm text-zinc-500'>
-            صفحة {meta.current_page} من {meta.last_page}
-          </span>
-          <PageLink page={currentPage + 1} disabled={currentPage >= meta.last_page} label='التالي' />
-        </div>
-      )}
-    </main>
+            {result.meta.last_page > 1 && (
+              <nav className='mt-12 flex items-center justify-center gap-4' aria-label='صفحات الأخبار'>
+                <PageLink page={currentPage - 1} disabled={currentPage <= 1} label='السابق' />
+                <span className='rounded-full bg-white px-5 py-3 text-sm font-bold'>صفحة {result.meta.current_page} من {result.meta.last_page}</span>
+                <PageLink page={currentPage + 1} disabled={currentPage >= result.meta.last_page} label='التالي' />
+              </nav>
+            )}
+          </>
+        )}
+      </main>
+    </div>
   );
 }
 
 function PageLink({ page, disabled, label }: { page: number; disabled: boolean; label: string }) {
+  const className = 'rounded-full border border-[#17251f]/20 px-5 py-3 text-sm font-bold transition';
+
   if (disabled) {
-    return <span className='cursor-not-allowed rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-300'>{label}</span>;
+    return <span className={`${className} cursor-not-allowed opacity-35`}>{label}</span>;
   }
 
-  return (
-    <Link
-      href={`/news?page=${page}`}
-      className='rounded-lg border border-zinc-200 px-4 py-2 text-sm text-black transition hover:bg-zinc-50'
-    >
-      {label}
-    </Link>
-  );
+  return <Link href={`/news?page=${page}`} className={`${className} hover:bg-[#17251f] hover:text-white`}>{label}</Link>;
 }

@@ -6,7 +6,7 @@ export interface NewsItem {
   slug: string;
   title: string;
   description: string;
-  content: string; // HTML قادم من محرر Twill
+  content: string | null; // HTML قادم من محرر Twill
   publish_date: string | null; // ISO date string
   cover_image: string | null; // رابط كامل للصورة
   dir: 'rtl' | 'ltr';
@@ -31,9 +31,4 @@ export interface LaravelPaginated<T> {
     to: number | null;
     total: number;
   };
-}
-
-// شكل الاستجابة عند إرجاع مورد واحد (new NewsResource($news))
-export interface SingleResourceResponse<T> {
-  data: T;
 }
