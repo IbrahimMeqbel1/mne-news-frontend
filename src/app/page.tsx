@@ -2,6 +2,8 @@ import { getNewsList } from '@/lib/api';
 import Link from 'next/link';
 
 import { Search, Calendar, ChevronLeft, ChevronRight, Globe, Phone, MapPin } from 'lucide-react';
+import { NewsItem } from '@/types/news';
+import { formatArabicDate } from '@/lib/format';
 
 export default async function Home() {
   let result = await getNewsList(1).catch(() => null);
@@ -91,7 +93,7 @@ export default async function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-10">
-            {newsItems.map((item: any) => (
+            {newsItems.map((item: NewsItem) => (
               <Link
                 key={item.id}
                 href={`/news/${item.slug}`}
@@ -117,7 +119,7 @@ export default async function Home() {
                 <div className="p-8 flex flex-col flex-1">
                   <div className="flex items-center gap-2 text-gray-400 text-xs mb-4">
                     <Calendar size={14} />
-                    <span>{new Date(item.publish_date).toLocaleDateString('ar-PA')}</span>
+                    <span>{formatArabicDate(item.publish_date)}</span>
                   </div>
                   <h3 className="text-xl font-bold mb-4 group-hover:text-yellow-600 transition-colors line-clamp-2 leading-relaxed">
                     {item.title}

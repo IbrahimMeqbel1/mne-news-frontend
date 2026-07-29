@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getNewsList } from '@/lib/api';
 import { formatArabicDate } from '@/lib/format';
 import NewsSlider from '@/components/NewsSlider';
+import { NewsItem } from '@/types/news';
 import { Search, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const metadata = {
@@ -111,7 +112,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {newsItems.map((item: any) => (
+            {newsItems.map((item: NewsItem) => (
               <Link
                 key={item.id}
                 href={`/news/${item.slug}`}

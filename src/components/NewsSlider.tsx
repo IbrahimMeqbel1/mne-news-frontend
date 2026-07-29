@@ -4,12 +4,13 @@ import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import Link from 'next/link';
+import { NewsItem } from '@/types/news';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 interface NewsSliderProps {
-  newsItems: any[];
+  newsItems: NewsItem[];
 }
 
 export default function NewsSlider({ newsItems }: NewsSliderProps) {
